@@ -3,7 +3,7 @@ import sys
 Help = """
 $ python3 task.py help
 Usage :-
-$ ./task add 2 hello world             # Add a new item with priority 2 and text "hello world" to the list
+$ python3 task.py add 2 hello world    # Add a new item with priority 2 and text "hello world" to the list
 $ python3 task.py ls                   # Show incomplete priority list items sorted by priority in ascending order
 $ python3 task.py del INDEX            # Delete the incomplete item with the given index
 $ python3 task.py done INDEX           # Mark the incomplete item with the given index as complete
@@ -14,13 +14,13 @@ $ python3 task.py report               # Statistics
 def file_manager(deletor = None, done = None, ls = None):
     """manage operation like delete an item, mark as done, set the priority etc"""
 
-    with open("task.txt") as file:
+    with open("TODO") as file:
         task_file = file.readlines()
         
         """This is additional, if there is no data in file programme just print File is empty and quit"""
-        # if len(task_file) == 0:
-            # print("File is empty")
-            # quit()
+        if len(task_file) == 0:
+            print("File is empty")
+            quit()
 
         try:
             if deletor != None:
@@ -43,7 +43,7 @@ def file_manager(deletor = None, done = None, ls = None):
 
         task_file.sort(key=lambda x: list(map(int, x[-3:-2])))
 
-        file_write = open("task.txt", "w")
+        file_write = open("TODO", "w")
         counter = 1
         for user_data in task_file:
             user_data = user_data.replace("\n", "")
@@ -56,7 +56,7 @@ def file_manager(deletor = None, done = None, ls = None):
 
 def file_write(priority, data):
     """Add a new item"""
-    with open("task.txt", "a") as file:
+    with open("TODO", "a") as file:
         file.write(f"0. {data} [{str(priority)}]\n")
     print(f"Added task: \"{data}\" with priority {priority}")
     file_manager()
@@ -67,7 +67,7 @@ def statistics():
     pending_tasks = []
     completed_tasks = []
 
-    with open("task.txt") as stats:
+    with open("TODO") as stats:
         for stat in stats.readlines():
             if "(done)" in stat:
                 completed_tasks.append(stat.replace(f"{stat[0:2]} (done) ","")[:-5])
@@ -97,7 +97,7 @@ def task_manager(commands):
         file_manager(ls="ls")
 
     elif command == "add":
-        file_write(commands[2], commands[3])
+        file_write(commands[2], " ".join(commands[3:]))
 
     elif command == "del":
         file_manager(deletor=commands[2])
