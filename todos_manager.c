@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+// ----------------------------------------------------------------------------------
 
 FILE * open_file(char file_name[], const char *mode){
     FILE *file_pointer = fopen(file_name, mode);
@@ -29,30 +30,49 @@ void write_all_todos(char todo[][1000], int size){
 
 }
 
+int generate_todo_id(char all_todos[]){
+    int total_todos = 0;
+    for (int i=0; all_todos[i] != '\0'; i++){
+        if (all_todos[i] == '\n') total_todos++;
+    }
+    return total_todos + 1;
+}
+
+// ----------------------------------------------------------------------------------
+
+
 void add_todo(char todo_priority, int todo_size, char todo[][1000]){
     FILE *file = open_file("TODO", "a");
-    char * priority_format;
+
+    // since max 100 todos are allowed so, the todo id will max go to 3 digit number
+    // that's why char_todo_id is created of 4 bytes
+    char * priority_format, all_todos[100000], char_todo_id[4];
+    int size = sizeof(all_todos), todo_id;
 
     for (int i=0; i<todo_size; i++){
         fputs(todo[i], file);
-        
+
         // add a space
         if (i < todo_size-1)
             fputc(' ', file);
-        
-        // add todo priority
-        else{
-            asprintf(&priority_format, " [%c]", todo_priority);
-            fputs(priority_format, file);
-        }
 
     }
+
+    // add todo priority
+    asprintf(&priority_format, " [%c] - ", todo_priority);
+    fputs(priority_format, file);
+
+    // add todo id
+    get_all_todos(all_todos, size);
+    todo_id = generate_todo_id(all_todos);
+    sprintf(char_todo_id, "%d", todo_id);
+    fputs(char_todo_id, file);
     
+    // add a new line at the end
     fputc('\n', file);
 
     // close the file
     fclose(file);
-    
 }
 
 void del_todo(int index){
@@ -121,7 +141,7 @@ void mark_as_done(int index){
 
 void genrate_report(char all_todos[]){
     char done_todos[100][1000], pending_todos[100][1000];
-    int flag = 0, d = 0, p = 0, k = 0;
+    int flag = 0, done_count = 0, pending_count = 0, k = 0;
 
     for (int i=0; all_todos[i] != '\0'; i++){
         if (all_todos[i] == '*'){
@@ -133,34 +153,40 @@ void genrate_report(char all_todos[]){
             if (all_todos[i] == '\n'){
                 flag = 0;
                 k = 0;
-                d++;
+                done_count++;
             } else{
-                done_todos[d][k] = all_todos[i];
+                done_todos[done_count][k] = all_todos[i];
                 k++;
             }
         } else {
             if (all_todos[i] == '\n'){
                 k = 0;
-                p++;
+                pending_count++;
             } else {
-                pending_todos[p][k] = all_todos[i];
+                pending_todos[pending_count][k] = all_todos[i];
                 k++;
             }
         }
     }
 
     printf("\nCompleted Todos:\n");
-    if (d > 0){
-        for (int i=0; i<d; i++)
-            printf("%s\n", done_todos[i]);
+    if (done_count > 0){
+        k = 1;
+        for (int i=0; i<done_count; i++){
+            printf("%d) %s\n", k, done_todos[i]);
+            k++;
+        }
     } else {
         printf("Nothing to show here\n");
     }
 
     printf("\nPending Todos:\n");
-    if (p > 0){
-        for (int i=0; i<p; i++)
-            printf("%s\n", pending_todos[i]);
+    if (pending_count > 0){
+        k = 1;
+        for (int i=0; i<pending_count; i++){
+            printf("%d) %s\n", k, pending_todos[i]);
+            k++;
+        }
     } else {
         printf("Nothing to show here\n");
     }
@@ -216,7 +242,7 @@ int main(int argc, char const *argv[]){
 
     else if (!strcmp(executor_command, "ls")){
         char all_todos[100000];
-        int size = sizeof(all_todos);
+        int size = sizeof(all_todos), count = 1, flag = 1;
         get_all_todos(all_todos, size);
 
         for (int i=0; all_todos[i] != '\0'; i++){
@@ -224,9 +250,18 @@ int main(int argc, char const *argv[]){
             if (all_todos[i] == '*'){
                 // skip this todo
                 while (all_todos[i] != '\n') i++;
-                i++;
+            } else if (flag){
+                // print todo number and it's first character
+                printf("\n%d) %c", count, all_todos[i]);
+                count++;
+                flag = 0;
+            } else if (all_todos[i] == '\n'){
+                flag = 1;
+                printf("\n");
+            } else {
+                printf("%c", all_todos[i]);
             }
-            printf("%c", all_todos[i]);
+
         }
 
     }
