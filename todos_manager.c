@@ -12,12 +12,6 @@ FILE * open_file(char file_name[], const char *mode){
     return file_pointer;
 }
 
-void get_all_todos(char all_todos[], int size){
-    FILE *file = open_file("TODO", "r");
-    fread(all_todos, size, 1, file);
-    fclose(file);
-}
-
 void write_all_todos(char todo[][1000], int size){
     FILE *write_file = open_file("TODO", "w");
 
@@ -30,12 +24,77 @@ void write_all_todos(char todo[][1000], int size){
 
 }
 
-int generate_todo_id(char all_todos[]){
+void get_all_todos(char all_todos[], int size){
+    FILE *file = open_file("TODO", "r");
+    fread(all_todos, size, 1, file);
+    fclose(file);
+}
+
+void seprate_all_todos(char all_todos[], char todos[][1000]){
+    char temp[1000];
+    int j, k = 0;
+
+    for (int i=0; all_todos[i] != '\0'; i++){
+        j = 0;
+        while(all_todos[i] != '\n'){
+            temp[j] = all_todos[i];
+            j++;
+            i++;
+        }
+
+        // add a new line and null character 
+        temp[j] = '\n';
+        temp[++j] = '\0';
+
+        // copy temp array into todos 2d array
+        strcpy(todos[k], temp);
+        k++;
+
+    }
+
+}
+
+int num_of_todos(char all_todos[]){
     int total_todos = 0;
     for (int i=0; all_todos[i] != '\0'; i++){
         if (all_todos[i] == '\n') total_todos++;
     }
+    return total_todos;
+}
+
+int generate_todo_id(char all_todos[]){
+    int total_todos = num_of_todos(all_todos);
     return total_todos + 1;
+}
+
+void get_todos_priority(char all_todos[], int priority[]){
+    int j = 0;
+    for (int i=0; all_todos[i] != '\0'; i++){
+        if (all_todos[i] == '['){
+            char temp[2];
+            temp[0] = all_todos[i+1];
+            priority[j] = atoi(temp);
+            j++;
+        }
+    }
+}
+
+void sort_by_priority(char todos[][1000], int priority[], int size){
+
+    char temp[1000];
+
+    for (int i = 0; i < size; i++) {
+        for (int j = i + 1; j < size; j++) {
+            if (priority[i] > priority[j]) {
+                int temp_priority = priority[i];
+                priority[i] = priority[j];
+                priority[j] = temp_priority;
+                strcpy(temp, todos[i]);
+                strcpy(todos[i], todos[j]);
+                strcpy(todos[j], temp);
+            }
+        }
+    }
 }
 
 // ----------------------------------------------------------------------------------
@@ -241,29 +300,23 @@ int main(int argc, char const *argv[]){
     }
 
     else if (!strcmp(executor_command, "ls")){
-        char all_todos[100000];
-        int size = sizeof(all_todos), count = 1, flag = 1;
+        char all_todos[100000], todos[100][1000];
+        int size = sizeof(all_todos), * priority, count = 1, flag = 1, todos_count;
         get_all_todos(all_todos, size);
 
-        for (int i=0; all_todos[i] != '\0'; i++){
+        todos_count = num_of_todos(all_todos);
+        priority = (int *) malloc(sizeof(int) * todos_count);
+        get_todos_priority(all_todos, priority);  // extract all priority from todos and save them to an array
+        seprate_all_todos(all_todos, todos);  // store todos into 2d array
+        sort_by_priority(todos, priority, todos_count);  // sort todos by priority
 
-            if (all_todos[i] == '*'){
-                // skip this todo
-                while (all_todos[i] != '\n') i++;
-            } else if (flag){
-                // print todo number and it's first character
-                printf("\n%d) %c", count, all_todos[i]);
+        for (int i=0; i<todos_count; i++){
+            if (todos[i][0] == '*') continue;  // skip this todo
+            else {
+                printf("%d) %s\n", count, todos[i]);
                 count++;
-                flag = 0;
-            } else if (all_todos[i] == '\n'){
-                flag = 1;
-                printf("\n");
-            } else {
-                printf("%c", all_todos[i]);
             }
-
         }
-
     }
 
     else if (!strcmp(executor_command, "help")){
