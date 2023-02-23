@@ -97,6 +97,18 @@ void sort_by_priority(char todos[][1000], int priority[], int size){
     }
 }
 
+void slice(const char *todo, char *result, int start, int end){
+    strncpy(result, todo + start, end - start);
+}
+
+void get_formatted_todo(const char *todo, char *empty_space, int start, int subtract){
+    int todo_len;
+    todo_len = strlen(todo) - subtract;  // get the todo length and remove unwanted characters (todo priority and todo id)
+    slice(todo, empty_space, start, todo_len);  // slice the char array
+    empty_space[todo_len - 1] = '\n';  // add a new line character at the end
+    empty_space[todo_len] = '\0';  // add a null character at the end
+}
+
 // ----------------------------------------------------------------------------------
 
 
@@ -199,57 +211,39 @@ void mark_as_done(int index){
 }
 
 void genrate_report(char all_todos[]){
-    char done_todos[100][1000], pending_todos[100][1000];
-    int flag = 0, done_count = 0, pending_count = 0, k = 0;
+    char todos[100][1000], todo[1000];
+    int * priority, count = 1, todos_count;
 
-    for (int i=0; all_todos[i] != '\0'; i++){
-        if (all_todos[i] == '*'){
-            flag = 1;
-            i++;
-        }
-        
-        if (flag){
-            if (all_todos[i] == '\n'){
-                flag = 0;
-                k = 0;
-                done_count++;
-            } else{
-                done_todos[done_count][k] = all_todos[i];
-                k++;
-            }
-        } else {
-            if (all_todos[i] == '\n'){
-                k = 0;
-                pending_count++;
-            } else {
-                pending_todos[pending_count][k] = all_todos[i];
-                k++;
-            }
+    todos_count = num_of_todos(all_todos);
+    priority = (int *) malloc(sizeof(int) * todos_count);
+    get_todos_priority(all_todos, priority);  // extract all priority from todos and save them to an array
+    seprate_all_todos(all_todos, todos);  // store todos into 2d array
+    sort_by_priority(todos, priority, todos_count);  // sort todos by priority
+
+    printf("---------- Completed ----------\n");
+    for (int i=0; i<todos_count; i++){
+        if (todos[i][0] == '*'){
+            get_formatted_todo(todos[i], todo, 1, 9);
+            printf("%d) %s", count, todo);
+            count++;
         }
     }
 
-    printf("\nCompleted Todos:\n");
-    if (done_count > 0){
-        k = 1;
-        for (int i=0; i<done_count; i++){
-            printf("%d) %s\n", k, done_todos[i]);
-            k++;
+    printf("\n");
+
+    printf("---------- Pending ----------\n");
+    count = 1;
+    for (int i=0; i<todos_count; i++){
+        if (todos[i][0] != '*'){
+            get_formatted_todo(todos[i], todo, 0, 8);
+            printf("%d) %s", count, todo);
+            count++;
         }
-    } else {
-        printf("Nothing to show here\n");
     }
 
-    printf("\nPending Todos:\n");
-    if (pending_count > 0){
-        k = 1;
-        for (int i=0; i<pending_count; i++){
-            printf("%d) %s\n", k, pending_todos[i]);
-            k++;
-        }
-    } else {
-        printf("Nothing to show here\n");
-    }
-    
+    // free up the memory from the heap
+    free(priority);
+
     printf("\n");
 
 }
@@ -300,7 +294,7 @@ int main(int argc, char const *argv[]){
     }
 
     else if (!strcmp(executor_command, "ls")){
-        char all_todos[100000], todos[100][1000];
+        char all_todos[100000], todos[100][1000], todo[1000];
         int size = sizeof(all_todos), * priority, count = 1, flag = 1, todos_count;
         get_all_todos(all_todos, size);
 
@@ -313,10 +307,15 @@ int main(int argc, char const *argv[]){
         for (int i=0; i<todos_count; i++){
             if (todos[i][0] == '*') continue;  // skip this todo
             else {
-                printf("%d) %s\n", count, todos[i]);
+                get_formatted_todo(todos[i], todo, 0, 8);
+                printf("%d) %s\n", count, todo);
                 count++;
             }
         }
+
+        // free up the memory from the heap
+        free(priority);
+
     }
 
     else if (!strcmp(executor_command, "help")){
