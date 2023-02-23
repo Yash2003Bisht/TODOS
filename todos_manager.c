@@ -97,14 +97,21 @@ void sort_by_priority(char todos[][1000], int priority[], int size){
     }
 }
 
+void priority_sorting(char all_todos[], char todos[][1000], int todos_count){
+    int priority[todos_count];
+    get_todos_priority(all_todos, priority);  // extract all priority from todos and save them to an array
+    seprate_all_todos(all_todos, todos);  // store todos into 2d array
+    sort_by_priority(todos, priority, todos_count);  // sort todos by priority
+}
+
 void slice(const char *todo, char *result, int start, int end){
     strncpy(result, todo + start, end - start);
 }
 
-void get_formatted_todo(const char *todo, char *empty_space, int start, int subtract){
+void get_formatted_todo(const char *todo, char *empty_space, int slice_start, int slice_end){
     int todo_len;
-    todo_len = strlen(todo) - subtract;  // get the todo length and remove unwanted characters (todo priority and todo id)
-    slice(todo, empty_space, start, todo_len);  // slice the char array
+    todo_len = strlen(todo) - slice_end;  // get the todo length and remove unwanted characters (todo priority and todo id)
+    slice(todo, empty_space, slice_start, todo_len);  // slice the char array
     empty_space[todo_len - 1] = '\n';  // add a new line character at the end
     empty_space[todo_len] = '\0';  // add a null character at the end
 }
@@ -212,13 +219,10 @@ void mark_as_done(int index){
 
 void genrate_report(char all_todos[]){
     char todos[100][1000], todo[1000];
-    int * priority, count = 1, todos_count;
+    int count = 1, todos_count = num_of_todos(all_todos);
 
-    todos_count = num_of_todos(all_todos);
-    priority = (int *) malloc(sizeof(int) * todos_count);
-    get_todos_priority(all_todos, priority);  // extract all priority from todos and save them to an array
-    seprate_all_todos(all_todos, todos);  // store todos into 2d array
-    sort_by_priority(todos, priority, todos_count);  // sort todos by priority
+    // sort todos by priority
+    priority_sorting(all_todos, todos, todos_count);
 
     printf("---------- Completed ----------\n");
     for (int i=0; i<todos_count; i++){
@@ -241,11 +245,25 @@ void genrate_report(char all_todos[]){
         }
     }
 
-    // free up the memory from the heap
-    free(priority);
-
     printf("\n");
 
+}
+
+void list_all_todos(char all_todos[]){
+    char todos[100][1000], todo[1000];
+    int count = 1, flag = 1, todos_count = num_of_todos(all_todos);
+    
+    // sort todos by priority
+    priority_sorting(all_todos, todos, todos_count);
+
+    for (int i=0; i<todos_count; i++){
+        if (todos[i][0] == '*') continue;  // skip this todo
+        else {
+            get_formatted_todo(todos[i], todo, 0, 8);
+            printf("%d) %s\n", count, todo);
+            count++;
+        }
+    }
 }
 
 int main(int argc, char const *argv[]){
@@ -294,28 +312,10 @@ int main(int argc, char const *argv[]){
     }
 
     else if (!strcmp(executor_command, "ls")){
-        char all_todos[100000], todos[100][1000], todo[1000];
-        int size = sizeof(all_todos), * priority, count = 1, flag = 1, todos_count;
+        char all_todos[100000];
+        int size = sizeof(all_todos);
         get_all_todos(all_todos, size);
-
-        todos_count = num_of_todos(all_todos);
-        priority = (int *) malloc(sizeof(int) * todos_count);
-        get_todos_priority(all_todos, priority);  // extract all priority from todos and save them to an array
-        seprate_all_todos(all_todos, todos);  // store todos into 2d array
-        sort_by_priority(todos, priority, todos_count);  // sort todos by priority
-
-        for (int i=0; i<todos_count; i++){
-            if (todos[i][0] == '*') continue;  // skip this todo
-            else {
-                get_formatted_todo(todos[i], todo, 0, 8);
-                printf("%d) %s\n", count, todo);
-                count++;
-            }
-        }
-
-        // free up the memory from the heap
-        free(priority);
-
+        list_all_todos(all_todos);
     }
 
     else if (!strcmp(executor_command, "help")){
