@@ -284,19 +284,29 @@ void genrate_report(char all_todos[]){
 
 }
 
-void list_all_todos(char all_todos[]){
+void list_all_todos(char all_todos[], int formatting_required){
     char todos[100][1000], todo[1000];
     int count = 1, flag = 1, todos_count = num_of_todos(all_todos);
     
     // sort todos by priority
     priority_sorting(all_todos, todos, todos_count);
 
-    for (int i=0; i<todos_count; i++){
-        if (todos[i][0] == '*') continue;  // skip this todo
-        else {
-            get_formatted_todo(todos[i], todo, 0, 8);
-            printf("%d) %s\n", count, todo);
-            count++;
+    if (formatting_required){
+        for (int i=0; i<todos_count; i++){
+            if (todos[i][0] == '*') continue;  // skip this todo
+            else {
+                get_formatted_todo(todos[i], todo, 0, 8);
+                printf("%d) %s\n", count, todo);
+                count++;
+            }
+        }
+    } else {
+        for (int i=0; i<todos_count; i++){
+            if (todos[i][0] == '*') continue;  // skip this todo
+            else {
+                printf("%d) %s\n", count, todos[i]);
+                count++;
+            }
         }
     }
 }
@@ -304,11 +314,15 @@ void list_all_todos(char all_todos[]){
 int main(int argc, char const *argv[]){
 
     char executor_command[100];
-    
-    if (argc > 1)
-        strcpy(executor_command, argv[1]);
-    
-    else {
+    int start = 0;
+
+    for (int i=1; i<argc; i++){
+        strcpy(executor_command + start, argv[i]);
+        start += strlen(argv[i]);
+    }
+
+    // the first argument is the name of the file
+    if (argc == 1){
         printf("Command not passed\n");
         return 0;
     }
@@ -346,11 +360,18 @@ int main(int argc, char const *argv[]){
         genrate_report(all_todos);
     }
 
+    else if (!strcmp(executor_command, "ls-f")){
+        char all_todos[100000];
+        int size = sizeof(all_todos);
+        get_all_todos(all_todos, size);
+        list_all_todos(all_todos, 1);
+    }
+
     else if (!strcmp(executor_command, "ls")){
         char all_todos[100000];
         int size = sizeof(all_todos);
         get_all_todos(all_todos, size);
-        list_all_todos(all_todos);
+        list_all_todos(all_todos, 0);
     }
 
     else if (!strcmp(executor_command, "help")){
