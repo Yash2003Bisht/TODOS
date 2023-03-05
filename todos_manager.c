@@ -12,6 +12,10 @@ FILE * open_file(char file_name[], const char *mode){
     return file_pointer;
 }
 
+void slice(const char *todo, char *result, int start, int end){
+    strncpy(result, todo + start, end - start);
+}
+
 void write_all_todos(char todo[][1000], int size){
     FILE *write_file = open_file("TODO", "w");
 
@@ -62,9 +66,44 @@ int num_of_todos(char all_todos[]){
     return total_todos;
 }
 
+// * currently, we are not using this function, keeping it for future use
+// void reverse(char* str) {
+//     int len = strlen(str);
+//     int i, j;
+//     char temp;
+    
+//     for (i = 0, j = len - 1; i < j; i++, j--) {
+//         temp = str[i];
+//         str[i] = str[j];
+//         str[j] = temp;
+//     }
+// }
+
 int generate_todo_id(char all_todos[]){
-    int total_todos = num_of_todos(all_todos);
-    return total_todos + 1;
+    int todos_count = num_of_todos(all_todos), counter, j;
+    char todos[todos_count][1000], char_todo_id[4] = {'\0'};
+    seprate_all_todos(all_todos, todos);
+
+    int todo_id_count[todos_count];
+
+    for (int i=0; i<todos_count; i++)
+        todo_id_count[i] = 0;
+
+    for (int i=0; i<todos_count; i++){
+        slice(todos[i], char_todo_id, 14, strlen(todos[i]));
+        todo_id_count[atoi(char_todo_id)-1]++;
+    }
+
+    for (int i=0; i<todos_count; i++){
+        if (todo_id_count[i] == 0){
+            return i+1;
+        } else if (todo_id_count[i] > 1){
+            printf("Duplicate id found -> %d\n", i+1);
+        }
+    }
+
+    return todos_count+1;
+
 }
 
 void get_todos_priority(char all_todos[], int priority[]){
@@ -104,15 +143,11 @@ void priority_sorting(char all_todos[], char todos[][1000], int todos_count){
     sort_by_priority(todos, priority, todos_count);  // sort todos by priority
 }
 
-void slice(const char *todo, char *result, int start, int end){
-    strncpy(result, todo + start, end - start);
-}
-
 void get_formatted_todo(const char *todo, char *empty_space, int slice_start, int slice_end){
     int todo_len;
     todo_len = strlen(todo) - slice_end;  // get the todo length and remove unwanted characters (todo priority and todo id)
     slice(todo, empty_space, slice_start, todo_len);  // slice the char array
-    empty_space[todo_len - 1] = '\n';  // add a new line character at the end
+    empty_space[todo_len - 1] = '\n';  // add a new line character
     empty_space[todo_len] = '\0';  // add a null character at the end
 }
 
@@ -123,7 +158,7 @@ void add_todo(char todo_priority, int todo_size, char todo[][1000]){
     FILE *file = open_file("TODO", "a");
 
     // since max 100 todos are allowed so, the todo id will max go to 3 digit number
-    // that's why char_todo_id is created of 4 bytes
+    // that's why char_todo_id is created of 4 bytes(1 additional byte for the null character)
     char * priority_format, all_todos[100000], char_todo_id[4];
     int size = sizeof(all_todos), todo_id;
 
