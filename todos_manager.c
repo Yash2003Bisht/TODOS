@@ -313,16 +313,21 @@ void list_all_todos(char all_todos[], int formatting_required){
 
 int main(int argc, char const *argv[]){
 
-    char executor_command[100];
+    char base_command[10], mixed_command[10];
     int start = 0;
 
     for (int i=1; i<argc; i++){
-        strcpy(executor_command + start, argv[i]);
+        strcpy(mixed_command + start, argv[i]);
         start += strlen(argv[i]);
+        mixed_command[start] = ' ';
+        start++;
     }
 
-    // the first argument is the name of the file
-    if (argc == 1){
+    mixed_command[start - 1] = '\0';
+
+    if (argc > 1){
+        strcpy(base_command, argv[1]);
+    } else{
         printf("Command not passed\n");
         return 0;
     }
@@ -331,7 +336,7 @@ int main(int argc, char const *argv[]){
         --------------- EXECUTOR COMMANDS ---------------
     */
 
-    if (!strcmp(executor_command, "add")){
+    if (!strcmp(base_command, "add")){
         int size = argc-3;
         char todo[size][1000], priority = argv[2][0];
 
@@ -343,38 +348,40 @@ int main(int argc, char const *argv[]){
 
     }
 
-    else if (!strcmp(executor_command, "del")){
-        int todo_index = atoi(argv[2]);
-        del_todo(todo_index);
+    else if (!strcmp(base_command, "del")){
+        char all_todos[100000];
+        int size = sizeof(all_todos), todo_id = atoi(argv[2]);
+        get_all_todos(all_todos, size);
+        del_todo(todo_id);
     }
 
-    else if (!strcmp(executor_command, "done")){
+    else if (!strcmp(base_command, "done")){
         int todo_index = atoi(argv[2]);
         mark_as_done(todo_index);
     }
 
-    else if (!strcmp(executor_command, "report")){
+    else if (!strcmp(base_command, "report")){
         char all_todos[100000];
         int size = sizeof(all_todos);
         get_all_todos(all_todos, size);
         genrate_report(all_todos);
     }
 
-    else if (!strcmp(executor_command, "ls-f")){
+    else if (!strcmp(mixed_command, "ls -f")){
         char all_todos[100000];
         int size = sizeof(all_todos);
         get_all_todos(all_todos, size);
         list_all_todos(all_todos, 1);
     }
 
-    else if (!strcmp(executor_command, "ls")){
+    else if (!strcmp(base_command, "ls")){
         char all_todos[100000];
         int size = sizeof(all_todos);
         get_all_todos(all_todos, size);
         list_all_todos(all_todos, 0);
     }
 
-    else if (!strcmp(executor_command, "help")){
+    else if (!strcmp(base_command, "help")){
         char * help = "Usage :-\n \
 $ todo add 2 hello world    # Add a todo with priority 2\n \
 $ todo ls                   # Show all incompleted todos sorted by priority in ascending order\n \
@@ -385,6 +392,8 @@ $ todo help                 # Show usage\n";
         
         printf("%s", help);
 
+    } else {
+        printf("Invalid command\n");
     }
 
     return 0;
