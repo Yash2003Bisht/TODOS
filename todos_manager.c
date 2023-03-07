@@ -308,7 +308,7 @@ void generate_report(char all_todos[]){
 
 }
 
-void list_all_todos(char all_todos[], int formatting_required){
+void list_pending_todos(char all_todos[], int formatting_required){
     char todos[100][1000], todo[1000];
     int count = 1, flag = 1, todos_count = num_of_todos(all_todos);
     
@@ -328,6 +328,31 @@ void list_all_todos(char all_todos[], int formatting_required){
         for (int i=0; i<todos_count; i++){
             if (todos[i][0] == '*') continue;  // skip this todo
             else {
+                printf("%d) %s\n", count, todos[i]);
+                count++;
+            }
+        }
+    }
+}
+
+void list_completed_todos(char all_todos[], int formatting_required){
+    char todos[100][1000], todo[1000];
+    int count = 1, flag = 1, todos_count = num_of_todos(all_todos);
+    
+    // sort todos by priority
+    priority_sorting(all_todos, todos, todos_count);
+
+    if (formatting_required){
+        for (int i=0; i<todos_count; i++){
+            if (todos[i][0] == '*'){
+                get_formatted_todo(todos[i], todo, 1, 9);
+                printf("%d) %s\n", count, todo);
+                count++;
+            }
+        }
+    } else {
+        for (int i=0; i<todos_count; i++){
+            if (todos[i][0] == '*'){
                 printf("%d) %s\n", count, todos[i]);
                 count++;
             }
@@ -397,14 +422,28 @@ int main(int argc, char const *argv[]){
         char all_todos[100000];
         int size = sizeof(all_todos);
         get_all_todos(all_todos, size);
-        list_all_todos(all_todos, 1);
+        list_pending_todos(all_todos, 1);
+    }
+    
+    else if (!strcmp(mixed_command, "ls -D -f")){
+        char all_todos[100000];
+        int size = sizeof(all_todos);
+        get_all_todos(all_todos, size);
+        list_completed_todos(all_todos, 1);
+    }
+
+    else if (!strcmp(mixed_command, "ls -D")){
+        char all_todos[100000];
+        int size = sizeof(all_todos);
+        get_all_todos(all_todos, size);
+        list_completed_todos(all_todos, 0);
     }
 
     else if (!strcmp(base_command, "ls")){
         char all_todos[100000];
         int size = sizeof(all_todos);
         get_all_todos(all_todos, size);
-        list_all_todos(all_todos, 0);
+        list_pending_todos(all_todos, 0);
     }
 
     else if (!strcmp(base_command, "help")){
