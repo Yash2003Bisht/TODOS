@@ -19,10 +19,8 @@ void slice(const char *todo, char *result, int start, int end){
 void write_all_todos(char todo[][1000], int size){
     FILE *write_file = open_file("TODO", "w");
 
-    for (int i=0; i<size; i++){
+    for (int i=0; i<size; i++)
         fputs(todo[i], write_file);
-        fputc('\n', write_file);
-    }
 
     fclose(write_file);
 
@@ -80,7 +78,7 @@ int num_of_todos(char all_todos[]){
 // }
 
 int generate_todo_id(char all_todos[]){
-    int todos_count = num_of_todos(all_todos), counter, j;
+    int todos_count = num_of_todos(all_todos), todo_len;
     char todos[todos_count][1000], char_todo_id[4] = {'\0'};
     seprate_all_todos(all_todos, todos);
 
@@ -90,7 +88,17 @@ int generate_todo_id(char all_todos[]){
         todo_id_count[i] = 0;
 
     for (int i=0; i<todos_count; i++){
-        slice(todos[i], char_todo_id, 14, strlen(todos[i]));
+        todo_len = strlen(todos[i]);
+
+        // this is a temporary fix for generating a unique id
+        // we will find a more scalable solution in the future
+        if (i+1 < 10)
+            slice(todos[i], char_todo_id, todo_len - 2, todo_len);
+        else if (i+1 < 100)
+            slice(todos[i], char_todo_id, todo_len - 3, todo_len);
+        else
+            slice(todos[i], char_todo_id, todo_len - 4, todo_len);
+
         todo_id_count[atoi(char_todo_id)-1]++;
     }
 
@@ -188,36 +196,43 @@ void add_todo(char todo_priority, int todo_size, char todo[][1000]){
     fclose(file);
 }
 
-void del_todo(int index){
-    char all_todos[100000], todo[100][1000];
-    int j = 0, k = 0, size = sizeof(all_todos);
+void del_todo(int todo_id, char all_todos[]){
+    int todos_count = num_of_todos(all_todos), temp_todo_id, todo_len, flag = 0;
+    char todos[todos_count][1000], char_todo_id[4], todo[1000];
+    seprate_all_todos(all_todos, todos);
 
-    // get all todos
-    get_all_todos(all_todos, size);
+    for (int i=0; i<todos_count; i++){
+        todo_len = strlen(todos[i]);
 
-    for (int i=0; all_todos[i] != '\0'; i++){
-        if (index-1 == j){
-            if (all_todos[i] == '*'){
-                // skip this todo
-                while (all_todos[i] != '\n') i++;
+        if (i+1 < 10)
+            slice(todos[i], char_todo_id, todo_len - 2, todo_len);
+        else if (i+1 < 100)
+            slice(todos[i], char_todo_id, todo_len - 3, todo_len);
+        else
+            slice(todos[i], char_todo_id, todo_len - 4, todo_len);
+        
+        temp_todo_id = atoi(char_todo_id);
+
+        if (todo_id == temp_todo_id){
+            if (todos[i][0] == '*'){
+                for (int j=i; j<todos_count-1; j++)
+                    strcpy(todos[j], todos[j+1]);
+                get_formatted_todo(todos[i], todo, 1, 9);
+                printf("(DELETED) Todo -> %s", todo);
+                flag = 1;
             } else {
-                printf("Todo not marked as completed\n");
-                i--;
+                flag = -1;
+                printf("Todo is not marked as completed\n");
             }
-            index = -1;
-        } else {
-            if (all_todos[i] == '\n'){
-                j++;
-                k = 0;
-            } else{
-                todo[j][k] = all_todos[i];
-                k++;
-            }
+            break;
         }
     }
 
     // open file in write mode to delete all content
-    write_all_todos(todo, j);
+    if (flag == 1)
+        write_all_todos(todos, todos_count - 1);
+    else if (flag == 0)
+        printf("Todo id not found\n");
 
 }
 
@@ -252,7 +267,7 @@ void mark_as_done(int index){
 
 }
 
-void genrate_report(char all_todos[]){
+void generate_report(char all_todos[]){
     char todos[100][1000], todo[1000];
     int count = 1, todos_count = num_of_todos(all_todos);
 
@@ -352,7 +367,7 @@ int main(int argc, char const *argv[]){
         char all_todos[100000];
         int size = sizeof(all_todos), todo_id = atoi(argv[2]);
         get_all_todos(all_todos, size);
-        del_todo(todo_id);
+        del_todo(todo_id, all_todos);
     }
 
     else if (!strcmp(base_command, "done")){
@@ -364,7 +379,7 @@ int main(int argc, char const *argv[]){
         char all_todos[100000];
         int size = sizeof(all_todos);
         get_all_todos(all_todos, size);
-        genrate_report(all_todos);
+        generate_report(all_todos);
     }
 
     else if (!strcmp(mixed_command, "ls -f")){
