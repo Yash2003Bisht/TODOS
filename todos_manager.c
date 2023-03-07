@@ -450,8 +450,10 @@ int main(int argc, char const *argv[]){
         char * help = "Usage :-\n \
 $ todo add 2 hello world    # Add a todo with priority 2\n \
 $ todo ls                   # Show all incompleted todos sorted by priority in ascending order\n \
-$ todo del INDEX            # Delete a incomplete todo with the given index\n \
-$ todo done INDEX           # Mark the incomplete todo with the given index as complete\n \
+$ todo ls -f                # -f for formatting\n \
+$ todo ls -D                # Show all completed todos sorted by priority in ascending order\n \
+$ todo del ID               # Delete a complete todo with the given ID\n \
+$ todo done ID              # Mark the incomplete todo with the given ID as complete\n \
 $ todo report               # Statistics\n \
 $ todo help                 # Show usage\n";
         
