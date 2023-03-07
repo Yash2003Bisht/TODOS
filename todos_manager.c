@@ -64,21 +64,20 @@ int num_of_todos(char all_todos[]){
     return total_todos;
 }
 
-// * currently, we are not using this function, keeping it for future use
-// void reverse(char* str) {
-//     int len = strlen(str);
-//     int i, j;
-//     char temp;
+void reverse(char* str) {
+    int len = strlen(str);
+    int i, j;
+    char temp;
     
-//     for (i = 0, j = len - 1; i < j; i++, j--) {
-//         temp = str[i];
-//         str[i] = str[j];
-//         str[j] = temp;
-//     }
-// }
+    for (i = 0, j = len - 1; i < j; i++, j--) {
+        temp = str[i];
+        str[i] = str[j];
+        str[j] = temp;
+    }
+}
 
 int generate_todo_id(char all_todos[]){
-    int todos_count = num_of_todos(all_todos), todo_len;
+    int todos_count = num_of_todos(all_todos), todo_len, count;
     char todos[todos_count][1000], char_todo_id[4] = {'\0'};
     seprate_all_todos(all_todos, todos);
 
@@ -88,16 +87,15 @@ int generate_todo_id(char all_todos[]){
         todo_id_count[i] = 0;
 
     for (int i=0; i<todos_count; i++){
-        todo_len = strlen(todos[i]);
+        todo_len = strlen(todos[i]) - 1, count = 0;
 
-        // this is a temporary fix for generating a unique id
-        // we will find a more scalable solution in the future
-        if (i+1 < 10)
-            slice(todos[i], char_todo_id, todo_len - 2, todo_len);
-        else if (i+1 < 100)
-            slice(todos[i], char_todo_id, todo_len - 3, todo_len);
-        else
-            slice(todos[i], char_todo_id, todo_len - 4, todo_len);
+        while (todos[i][todo_len] != ' '){
+            char_todo_id[count] = todos[i][todo_len];
+            count++;
+            todo_len--;
+        }
+
+        reverse(char_todo_id);
 
         todo_id_count[atoi(char_todo_id)-1]++;
     }
@@ -197,27 +195,28 @@ void add_todo(char todo_priority, int todo_size, char todo[][1000]){
 }
 
 void del_todo(int todo_id, char all_todos[]){
-    int todos_count = num_of_todos(all_todos), temp_todo_id, todo_len, flag = 0;
+    int todos_count = num_of_todos(all_todos), match_todo_id, todo_len, flag = 0, count;
     char todos[todos_count][1000], char_todo_id[4], todo[1000];
     seprate_all_todos(all_todos, todos);
 
     for (int i=0; i<todos_count; i++){
-        todo_len = strlen(todos[i]);
+        todo_len = strlen(todos[i]) - 1, count = 0;
 
-        if (i+1 < 10)
-            slice(todos[i], char_todo_id, todo_len - 2, todo_len);
-        else if (i+1 < 100)
-            slice(todos[i], char_todo_id, todo_len - 3, todo_len);
-        else
-            slice(todos[i], char_todo_id, todo_len - 4, todo_len);
+        while (todos[i][todo_len] != ' '){
+            char_todo_id[count] = todos[i][todo_len];
+            count++;
+            todo_len--;
+        }
+
+        reverse(char_todo_id);
         
-        temp_todo_id = atoi(char_todo_id);
+        match_todo_id = atoi(char_todo_id);
 
-        if (todo_id == temp_todo_id){
+        if (todo_id == match_todo_id){
             if (todos[i][0] == '*'){
+                get_formatted_todo(todos[i], todo, 1, 9);
                 for (int j=i; j<todos_count-1; j++)
                     strcpy(todos[j], todos[j+1]);
-                get_formatted_todo(todos[i], todo, 1, 9);
                 printf("(DELETED) Todo -> %s", todo);
                 flag = 1;
             } else {
@@ -236,34 +235,44 @@ void del_todo(int todo_id, char all_todos[]){
 
 }
 
-void mark_as_done(int index){
-    char all_todos[100000], todo[100][1000];
-    int j = 0, k = 0, size = sizeof(all_todos);
+void mark_as_done(int todo_id, char all_todos[]){
+    int todos_count = num_of_todos(all_todos), match_todo_id, todo_len, flag = 0, count;
+    char todos[todos_count][1000], char_todo_id[4], todo[1000];
+    seprate_all_todos(all_todos, todos);
 
-    // get all todos
-    get_all_todos(all_todos, size);
+    for (int i=0; i<todos_count; i++){
+        todo_len = strlen(todos[i]) - 1, count = 0;
 
-    for (int i=0; all_todos[i] != '\0'; i++){
-        if (index-1 == j){
-            if (all_todos[i] != '*'){
-                todo[j][k] = '*';
-                k++;
-                i--;
-                index = -1;
+        while (todos[i][todo_len] != ' '){
+            char_todo_id[count] = todos[i][todo_len];
+            count++;
+            todo_len--;
+        }
+
+        reverse(char_todo_id);
+        
+        match_todo_id = atoi(char_todo_id);
+
+        if (todo_id == match_todo_id){
+            if (todos[i][0] == '*'){
+                printf("Todo is already marked as done\n");
+                flag = -1;
             } else {
-                printf("Todo already marked as done\n");
+                todo[0] = '*';
+                strcpy(todo + 1, todos[i]);
+                strcpy(todos[i], todo);
+                printf("Todo mark as done\n");
+                flag = 1;
             }
-        } else if (all_todos[i] == '\n'){
-            j++;
-            k = 0;
-        } else{
-            todo[j][k] = all_todos[i];
-            k++;
+            break;
         }
     }
 
     // open file in write mode to delete all content
-    write_all_todos(todo, j);
+    if (flag == 1)
+        write_all_todos(todos, todos_count);
+    else if (flag == 0)
+        printf("Todo id not found\n");
 
 }
 
@@ -371,8 +380,10 @@ int main(int argc, char const *argv[]){
     }
 
     else if (!strcmp(base_command, "done")){
-        int todo_index = atoi(argv[2]);
-        mark_as_done(todo_index);
+        char all_todos[100000];
+        int size = sizeof(all_todos), todo_id = atoi(argv[2]);
+        get_all_todos(all_todos, size);
+        mark_as_done(todo_id, all_todos);
     }
 
     else if (!strcmp(base_command, "report")){
