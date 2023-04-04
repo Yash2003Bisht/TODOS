@@ -7,15 +7,24 @@
 
 // ----------------------------------------------------------------------------------
 
+/* Opens a file on any mode
+ * this will return a file pointer which we can use further
+ */
 FILE * open_file(char file_name[], const char *mode){
     FILE *file_pointer = fopen(file_name, mode);
     return file_pointer;
 }
 
+/* Slice the char array
+ * for now using this function to remove the todo priority & id
+ */
 void slice(const char *todo, char *result, int start, int end){
     strncpy(result, todo + start, end - start);
 }
 
+/* Open the file on write mode and delete all existing content
+ * then rewrite the remaining todos
+ */
 void write_all_todos(char todo[][1000], int size){
     FILE *write_file = open_file("TODO", "w");
 
@@ -26,12 +35,18 @@ void write_all_todos(char todo[][1000], int size){
 
 }
 
+/* Opens the file in read mode and stores all todos in the all_todos char array */
 void get_all_todos(char all_todos[], int size){
     FILE *file = open_file("TODO", "r");
     fread(all_todos, size, 1, file);
     fclose(file);
 }
 
+/* This will convert 1D array to 2D array
+ * here is a code snippet for better understanding
+ * char all_todos[] = {"write an essay on cow", "play with pet"};
+ * char todos[][1000] = {{"write an essay on cow"}, {"play with pet"}};
+ */
 void seprate_all_todos(char all_todos[], char todos[][1000]){
     char temp[1000];
     int j, k = 0;
@@ -56,6 +71,9 @@ void seprate_all_todos(char all_todos[], char todos[][1000]){
 
 }
 
+/* Returns total number of todos
+ * this will count all completed and pending todos
+ */
 int num_of_todos(char all_todos[]){
     int total_todos = 0;
     for (int i=0; all_todos[i] != '\0'; i++){
@@ -64,6 +82,9 @@ int num_of_todos(char all_todos[]){
     return total_todos;
 }
 
+/* Reverse the char array
+ * mainly using this function to get or create todo id
+ */
 void reverse(char* str) {
     int len = strlen(str);
     int i, j;
@@ -76,6 +97,9 @@ void reverse(char* str) {
     }
 }
 
+/* Generates id for todo
+ * this will generate a unique id for each todo
+ */
 int generate_todo_id(char all_todos[]){
     int todos_count = num_of_todos(all_todos), todo_len, count;
     char todos[todos_count][1000], char_todo_id[4] = {'\0'};
@@ -112,6 +136,7 @@ int generate_todo_id(char all_todos[]){
 
 }
 
+/* Function to get priorities of all todos */
 void get_todos_priority(char all_todos[], int priority[]){
     int j = 0;
     for (int i=0; all_todos[i] != '\0'; i++){
@@ -124,6 +149,9 @@ void get_todos_priority(char all_todos[], int priority[]){
     }
 }
 
+/* Sort todo by priority
+ * using selection sort algorithm to sort todo by priority (will update it with merge sort in future)
+ */ 
 void sort_by_priority(char todos[][1000], int priority[], int size){
 
     char temp[1000];
@@ -142,6 +170,10 @@ void sort_by_priority(char todos[][1000], int priority[], int size){
     }
 }
 
+/* Preprocessing the todos before sorting them
+ * 1) extracting all priorities from todos
+ * 2) converting todos from 1D array to 2D array
+ */ 
 void priority_sorting(char all_todos[], char todos[][1000], int todos_count){
     int priority[todos_count];
     get_todos_priority(all_todos, priority);  // extract all priority from todos and save them to an array
@@ -149,6 +181,7 @@ void priority_sorting(char all_todos[], char todos[][1000], int todos_count){
     sort_by_priority(todos, priority, todos_count);  // sort todos by priority
 }
 
+/* Removing todo priority and id */
 void get_formatted_todo(const char *todo, char *empty_space, int slice_start, int slice_end){
     int todo_len;
     todo_len = strlen(todo) - slice_end;  // get the todo length and remove unwanted characters (todo priority and todo id)
