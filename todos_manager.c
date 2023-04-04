@@ -44,7 +44,7 @@ void get_all_todos(char all_todos[], int size){
 
 /* This will convert 1D array to 2D array
  * here is a code snippet for better understanding
- * char all_todos[] = {"write an essay on cow", "play with pet"};
+ * char all_todos[] = {"write an essay on cow\nplay with pet"};
  * char todos[][1000] = {{"write an essay on cow"}, {"play with pet"}};
  */
 void seprate_all_todos(char all_todos[], char todos[][1000]){
