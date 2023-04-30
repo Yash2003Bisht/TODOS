@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 // ----------------------------------------------------------------------------------
 
@@ -260,12 +261,26 @@ void del_todo(int todo_id, char all_todos[]){
         }
     }
 
-    // open file in write mode to delete all content
     if (flag == 1)
         write_all_todos(todos, todos_count - 1);
     else if (flag == 0)
         printf("Todo id not found\n");
 
+}
+
+void del_all_todos(char all_todos[]){
+    int todos_count = num_of_todos(all_todos), length, pending_todos_count = 0;
+    char todos[todos_count][1000], pending_todos[todos_count][1000];
+    seprate_all_todos(all_todos, todos);
+
+    for (int i=0; i<todos_count; i++){
+        if (todos[i][0] != '*'){
+            strcpy(pending_todos[pending_todos_count], todos[i]);  // copy pending todo to pending_todos char array
+            pending_todos_count++;
+        }
+    }
+
+    write_all_todos(pending_todos, pending_todos_count);
 }
 
 void mark_as_done(int todo_id, char all_todos[]){
@@ -395,22 +410,14 @@ void list_completed_todos(char all_todos[], int formatting_required){
 
 int main(int argc, char const *argv[]){
 
-    char base_command[10], mixed_command[10];
-    int start = 0;
-
-    for (int i=1; i<argc; i++){
-        strcpy(mixed_command + start, argv[i]);
-        start += strlen(argv[i]);
-        mixed_command[start] = ' ';
-        start++;
-    }
-
-    mixed_command[start - 1] = '\0';
+    char base_command[10], all_todos[100000];
+    int start = 0, size = sizeof(all_todos), todo_id;
 
     if (argc > 1){
         strcpy(base_command, argv[1]);
+        get_all_todos(all_todos, size);
     } else{
-        printf("Command not passed\n");
+        printf("No command passed\n");
         return 0;
     }
 
@@ -419,64 +426,69 @@ int main(int argc, char const *argv[]){
     */
 
     if (!strcmp(base_command, "add")){
-        int size = argc-3;
-        char todo[size][1000], priority = argv[2][0];
+        if (argc <= 3){
+            printf("Priority & todo message is required\n");
+        } else{
+            size = argc-3;
+            char todo[size][1000], priority = argv[2][0];
 
-        // copy the todo to a new char array
-        for (int i=0; i < size; i++)
-            strcpy(todo[i], argv[i+3]);        
+            // copy the todo to a new char array
+            for (int i=0; i < size; i++)
+                strcpy(todo[i], argv[i+3]);        
 
-        add_todo(priority, size, todo);
-
-    }
-
-    else if (!strcmp(base_command, "del")){
-        char all_todos[100000];
-        int size = sizeof(all_todos), todo_id = atoi(argv[2]);
-        get_all_todos(all_todos, size);
-        del_todo(todo_id, all_todos);
+            add_todo(priority, size, todo);
+            printf("Todo added\n");
+        }
     }
 
     else if (!strcmp(base_command, "done")){
-        char all_todos[100000];
-        int size = sizeof(all_todos), todo_id = atoi(argv[2]);
-        get_all_todos(all_todos, size);
-        mark_as_done(todo_id, all_todos);
+        if (argc <= 2){
+            printf("Todo id is required\n");
+        } else{
+            todo_id = atoi(argv[2]);
+            mark_as_done(todo_id, all_todos);
+        }
+    }
+
+    else if (!strcmp(base_command, "del")){
+        if (argc <= 2){
+            printf("Todo id is required\n");
+        } else if (!strcmp(argv[2], "--all")){
+            char confirmation[2];
+
+            // take a second confirmation from the user
+            printf("Please confirm(y/n) ");
+            scanf("%s", confirmation);
+
+            if (!strcmp(confirmation, "y")){
+                del_all_todos(all_todos);
+                printf("All completed todos deleted\n");
+            }
+
+
+        } else{
+            todo_id = atoi(argv[2]);
+            del_todo(todo_id, all_todos);
+        }
     }
 
     else if (!strcmp(base_command, "report")){
-        char all_todos[100000];
-        int size = sizeof(all_todos);
-        get_all_todos(all_todos, size);
         generate_report(all_todos);
     }
 
-    else if (!strcmp(mixed_command, "ls -f")){
-        char all_todos[100000];
-        int size = sizeof(all_todos);
-        get_all_todos(all_todos, size);
-        list_pending_todos(all_todos, 1);
-    }
-    
-    else if (!strcmp(mixed_command, "ls -D -f")){
-        char all_todos[100000];
-        int size = sizeof(all_todos);
-        get_all_todos(all_todos, size);
-        list_completed_todos(all_todos, 1);
-    }
-
-    else if (!strcmp(mixed_command, "ls -D")){
-        char all_todos[100000];
-        int size = sizeof(all_todos);
-        get_all_todos(all_todos, size);
-        list_completed_todos(all_todos, 0);
-    }
-
     else if (!strcmp(base_command, "ls")){
-        char all_todos[100000];
-        int size = sizeof(all_todos);
-        get_all_todos(all_todos, size);
-        list_pending_todos(all_todos, 0);
+        if (argc <= 2){
+            list_pending_todos(all_todos, 0);
+        } else {
+            if (!strcmp(argv[2], "-f") && argc <= 3)
+                list_pending_todos(all_todos, 1);
+            else if (!strcmp(argv[2], "--done") && argc <= 3)
+                list_completed_todos(all_todos, 0);
+            else if ((!strcmp(argv[2], "--done") && !strcmp(argv[3], "-f")) || !strcmp(argv[2], "-f") && !strcmp(argv[3], "--done"))
+                list_completed_todos(all_todos, 1);
+            else
+                printf("Invalid flag use\n");
+        }
     }
 
     else if (!strcmp(base_command, "help")){
@@ -484,12 +496,12 @@ int main(int argc, char const *argv[]){
 $ todo add 2 hello world    # Add a todo with priority 2\n \
 $ todo ls                   # Show all incompleted todos sorted by priority in ascending order\n \
 $ todo ls -f                # -f for formatting\n \
-$ todo ls -D                # Show all completed todos sorted by priority in ascending order\n \
+$ todo ls --done                # Show all completed todos sorted by priority in ascending order\n \
 $ todo del ID               # Delete a complete todo with the given ID\n \
 $ todo done ID              # Mark the incomplete todo with the given ID as complete\n \
 $ todo report               # Statistics\n \
 $ todo help                 # Show usage\n";
-        
+
         printf("%s", help);
 
     } else {
