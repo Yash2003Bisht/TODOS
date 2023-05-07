@@ -183,12 +183,17 @@ void priority_sorting(char all_todos[], char todos[][1000], int todos_count){
 }
 
 /* Removing todo priority and id */
-void get_formatted_todo(const char *todo, char *empty_space, int slice_start, int slice_end){
-    int todo_len;
-    todo_len = strlen(todo) - slice_end;  // get the todo length and remove unwanted characters (todo priority and todo id)
-    slice(todo, empty_space, slice_start, todo_len);  // slice the char array
-    empty_space[todo_len - 1] = '\n';  // add a new line character
-    empty_space[todo_len] = '\0';  // add a null character at the end
+void get_formatted_todo(const char *todo, char *empty_space, int flag){
+    int i = flag ? 1 : 0;
+    for (; todo[i] != '['; i++){
+        if (flag)
+            empty_space[i-1] = todo[i];  // for completed todo
+        else
+            empty_space[i] = todo[i];  // for pending todo
+    }
+    i = flag ? i-1 : i;
+    empty_space[i++] = '\n';
+    empty_space[i] = '\0';
 }
 
 // ----------------------------------------------------------------------------------
@@ -248,7 +253,7 @@ void del_todo(int todo_id, char all_todos[]){
 
         if (todo_id == match_todo_id){
             if (todos[i][0] == '*'){
-                get_formatted_todo(todos[i], todo, 1, 9);
+                get_formatted_todo(todos[i], todo, 1);
                 for (int j=i; j<todos_count-1; j++)
                     strcpy(todos[j], todos[j+1]);
                 printf("(DELETED) Todo -> %s", todo);
@@ -334,7 +339,7 @@ void generate_report(char all_todos[]){
     printf("---------- Completed ----------\n");
     for (int i=0; i<todos_count; i++){
         if (todos[i][0] == '*'){
-            get_formatted_todo(todos[i], todo, 1, 9);
+            get_formatted_todo(todos[i], todo, 1);
             printf("%d) %s", count, todo);
             count++;
         }
@@ -346,7 +351,7 @@ void generate_report(char all_todos[]){
     count = 1;
     for (int i=0; i<todos_count; i++){
         if (todos[i][0] != '*'){
-            get_formatted_todo(todos[i], todo, 0, 8);
+            get_formatted_todo(todos[i], todo, 0);
             printf("%d) %s", count, todo);
             count++;
         }
@@ -367,7 +372,7 @@ void list_pending_todos(char all_todos[], int formatting_required){
         for (int i=0; i<todos_count; i++){
             if (todos[i][0] == '*') continue;  // skip this todo
             else {
-                get_formatted_todo(todos[i], todo, 0, 8);
+                get_formatted_todo(todos[i], todo, 0);
                 printf("%d) %s\n", count, todo);
                 count++;
             }
@@ -393,7 +398,7 @@ void list_completed_todos(char all_todos[], int formatting_required){
     if (formatting_required){
         for (int i=0; i<todos_count; i++){
             if (todos[i][0] == '*'){
-                get_formatted_todo(todos[i], todo, 1, 9);
+                get_formatted_todo(todos[i], todo, 1);
                 printf("%d) %s\n", count, todo);
                 count++;
             }
