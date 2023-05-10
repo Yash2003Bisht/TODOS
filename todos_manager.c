@@ -485,11 +485,12 @@ int main(int argc, char const *argv[]){
         if (argc <= 2){
             list_pending_todos(all_todos, 0);
         } else {
-            if (!strcmp(argv[2], "-f") && argc <= 3)
+            if (!strcmp(argv[2], "--format") && argc <= 3)
                 list_pending_todos(all_todos, 1);
             else if (!strcmp(argv[2], "--done") && argc <= 3)
                 list_completed_todos(all_todos, 0);
-            else if ((!strcmp(argv[2], "--done") && !strcmp(argv[3], "-f")) || !strcmp(argv[2], "-f") && !strcmp(argv[3], "--done"))
+            else if ((!strcmp(argv[2], "--done") && !strcmp(argv[3], "--format")) ||
+                      !strcmp(argv[2], "--format") && !strcmp(argv[3], "--done"))
                 list_completed_todos(all_todos, 1);
             else
                 printf("Invalid flag use\n");
@@ -500,9 +501,10 @@ int main(int argc, char const *argv[]){
         char * help = "Usage :-\n \
 $ todo add 2 hello world    # Add a todo with priority 2\n \
 $ todo ls                   # Show all incompleted todos sorted by priority in ascending order\n \
-$ todo ls -f                # -f for formatting\n \
-$ todo ls --done                # Show all completed todos sorted by priority in ascending order\n \
-$ todo del ID               # Delete a complete todo with the given ID\n \
+$ todo ls --format          # --format for formatting\n \
+$ todo ls --done            # Show all completed todos sorted by priority in ascending order\n \
+$ todo del ID               # Delete a completed todo with the given ID\n \
+$ todo del --all            # Delete all completed todo\n \
 $ todo done ID              # Mark the incomplete todo with the given ID as complete\n \
 $ todo report               # Statistics\n \
 $ todo help                 # Show usage\n";
