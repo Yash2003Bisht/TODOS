@@ -139,12 +139,17 @@ int generate_todo_id(char all_todos[]){
 
 /* Function to get priorities of all todos */
 void get_todos_priority(char all_todos[], int priority[]){
-    int j = 0;
-    for (int i=0; all_todos[i] != '\0'; i++){
+    int i = 0, j = 0, k, l;
+    for (i=0; all_todos[i] != '\0'; i++){
         if (all_todos[i] == '['){
-            char temp[2];
-            temp[0] = all_todos[i+1];
+            char temp[4] = {'\0'};
+            l = 0;
+            for (k=i+1; all_todos[k] != ']'; k++){
+                temp[l] = all_todos[k];
+                l++;
+            }
             priority[j] = atoi(temp);
+            i += l;
             j++;
         }
     }
