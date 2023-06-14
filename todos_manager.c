@@ -526,6 +526,7 @@ $ todo ls --done            # Show all completed todos sorted by priority in asc
 $ todo del ID               # Delete a completed todo with the given ID\n \
 $ todo del --all            # Delete all completed todo\n \
 $ todo done ID              # Mark the incomplete todo with the given ID as complete\n \
+$ todo done ID --undone     # Mark the complete todo with the given ID as incomplete\n \
 $ todo report               # Statistics\n \
 $ todo help                 # Show usage\n";
 
