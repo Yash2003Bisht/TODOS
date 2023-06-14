@@ -293,7 +293,7 @@ void del_all_todos(char all_todos[]){
     write_all_todos(pending_todos, pending_todos_count);
 }
 
-void mark_as_done(int todo_id, char all_todos[]){
+void mark_todo(int todo_id, char all_todos[], const char operation[]){
     int todos_count = num_of_todos(all_todos), match_todo_id, todo_len, flag = 0, count;
     char todos[todos_count][1000], char_todo_id[4], todo[1000];
     seprate_all_todos(all_todos, todos);
@@ -312,15 +312,27 @@ void mark_as_done(int todo_id, char all_todos[]){
         match_todo_id = atoi(char_todo_id);
 
         if (todo_id == match_todo_id){
-            if (todos[i][0] == '*'){
-                printf("Todo is already marked as done\n");
-                flag = -1;
+            if (!strcmp(operation, "--undone")){
+                if (todos[i][0] != '*'){
+                    printf("Todo is not marked as done\n");
+                    flag = -1;
+                } else {
+                    strcpy(todo, todos[i] + 1);
+                    strcpy(todos[i], todo);
+                    printf("Todo mark as undone\n");
+                    flag = 1;
+                }
             } else {
-                todo[0] = '*';
-                strcpy(todo + 1, todos[i]);
-                strcpy(todos[i], todo);
-                printf("Todo mark as done\n");
-                flag = 1;
+                if (todos[i][0] == '*'){
+                    printf("Todo is already marked as done\n");
+                    flag = -1;
+                } else {
+                    todo[0] = '*';
+                    strcpy(todo + 1, todos[i]);
+                    strcpy(todos[i], todo);
+                    printf("Todo mark as done\n");
+                    flag = 1;
+                }
             }
             break;
         }
@@ -456,7 +468,10 @@ int main(int argc, char const *argv[]){
             printf("Todo id is required\n");
         } else{
             todo_id = atoi(argv[2]);
-            mark_as_done(todo_id, all_todos);
+            if (argc == 4)
+                mark_todo(todo_id, all_todos, argv[3]);
+            else
+                mark_todo(todo_id, all_todos, "--done");
         }
     }
 
