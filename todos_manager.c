@@ -238,7 +238,7 @@ void add_todo(char todo_priority, int todo_size, char todo[][1000]){
     fclose(file);
 }
 
-void del_todo(int todo_id, char all_todos[]){
+void del_todo(int todo_id, int force_del, char all_todos[]){
     int todos_count = num_of_todos(all_todos), match_todo_id, todo_len, flag = 0, count;
     char todos[todos_count][1000], char_todo_id[4], todo[1000];
     seprate_all_todos(all_todos, todos);
@@ -257,8 +257,13 @@ void del_todo(int todo_id, char all_todos[]){
         match_todo_id = atoi(char_todo_id);
 
         if (todo_id == match_todo_id){
-            if (todos[i][0] == '*'){
-                get_formatted_todo(todos[i], todo, 1);
+            if (todos[i][0] == '*' || force_del == 1){
+
+                if (todos[i][0] == '*')
+                    get_formatted_todo(todos[i], todo, 1);
+                else
+                    get_formatted_todo(todos[i], todo, 0);
+
                 for (int j=i; j<todos_count-1; j++)
                     strcpy(todos[j], todos[j+1]);
                 printf("(DELETED) Todo -> %s", todo);
@@ -493,7 +498,17 @@ int main(int argc, char const *argv[]){
 
         } else{
             todo_id = atoi(argv[2]);
-            del_todo(todo_id, all_todos);
+            int force_del;
+
+            // check if "--force" delete flag is used
+            if (argc >= 4){
+                if (!strcmp(argv[3], "--force"))
+                    force_del = 1;
+                else
+                    force_del = 0;
+            }
+
+            del_todo(todo_id, force_del, all_todos);
         }
     }
 
@@ -524,6 +539,7 @@ $ todo ls                   # Show all incompleted todos sorted by priority in a
 $ todo ls --format          # --format for formatting\n \
 $ todo ls --done            # Show all completed todos sorted by priority in ascending order\n \
 $ todo del ID               # Delete a completed todo with the given ID\n \
+$ todo del ID --force       # Use --force flag to delete a uncompleted todo\n \
 $ todo del --all            # Delete all completed todo\n \
 $ todo done ID              # Mark the incomplete todo with the given ID as complete\n \
 $ todo done ID --undone     # Mark the complete todo with the given ID as incomplete\n \
