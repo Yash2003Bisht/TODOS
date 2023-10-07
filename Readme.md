@@ -5,6 +5,7 @@ $ todo ls                   # Show all incompleted todos sorted by priority in a
 $ todo ls --format          # --format for formatting
 $ todo ls --done            # Show all completed todos sorted by priority in ascending order
 $ todo del ID               # Delete a completed todo with the given ID
+$ todo del ID --force       # Use --force flag to delete a uncompleted todo
 $ todo del --all            # Delete all completed todo
 $ todo done ID              # Mark the incomplete todo with the given ID as complete
 $ todo done ID --undone     # Mark the complete todo with the given ID as incomplete
