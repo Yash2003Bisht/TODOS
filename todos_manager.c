@@ -6,6 +6,11 @@
 #include <stdlib.h>
 #include <ctype.h>
 
+// Global variable
+char active_file_path[120],  // stores the currently active file path
+     file_path[120],         // stores 'active_file.txt' path
+     *files_dir_path;        // stores todos files directory path
+
 // ----------------------------------------------------------------------------------
 
 /* Opens a file on any mode
@@ -14,6 +19,52 @@
 FILE * open_file(char file_name[], const char *mode){
     FILE *file_pointer = fopen(file_name, mode);
     return file_pointer;
+}
+
+/*
+ * Returns the name of currently active file
+*/
+void set_active_file_name(){
+    files_dir_path = getenv("TODOS_TEXT_DIR");
+
+    // Make "active_file.txt" path
+    strcpy(file_path, files_dir_path);
+    strcat(file_path, "active_file.txt");
+
+    FILE *file = open_file(file_path, "r");
+
+    if (file){
+        // Load the currently active file name into char array
+        char active_file_name[50] = {'\0'};
+        fgets(active_file_name, sizeof(active_file_name), file);
+
+        if (active_file_name[0] == '\0') {
+            printf("No file is currently selected! Using default TODO file\n\n");
+            goto set_default_todo_file;
+        }
+
+        // Make the currently active file path
+        strcpy(active_file_path, files_dir_path);
+        strcat(active_file_path, active_file_name);
+
+        goto active_file_exists;
+    }
+
+    printf("'active_file.txt' is missing! Using default TODO file\n\n");
+
+    set_default_todo_file:
+        stpcpy(active_file_path, files_dir_path);
+        strcat(active_file_path, "TODO");
+        return;
+
+    active_file_exists:
+        file = open_file(active_file_path, "r");
+
+        if (!file) {
+            printf("'%s' is not exists! Using default TODO file\n\n", active_file_path);
+            goto set_default_todo_file;
+        }
+
 }
 
 /* Slice the char array
@@ -27,7 +78,7 @@ void slice(const char *todo, char *result, int start, int end){
  * then rewrite the remaining todos
  */
 void write_all_todos(char todo[][1000], int size){
-    FILE *write_file = open_file("TODO", "w");
+    FILE *write_file = open_file(active_file_path, "w");
 
     for (int i=0; i<size; i++)
         fputs(todo[i], write_file);
@@ -38,7 +89,13 @@ void write_all_todos(char todo[][1000], int size){
 
 /* Opens the file in read mode and stores all todos in the all_todos char array */
 void get_all_todos(char all_todos[], int size){
-    FILE *file = open_file("TODO", "r");
+    FILE *file = open_file(active_file_path, "r");
+
+    if (!file){
+        printf("File Not found\n");
+        exit(0);
+    }
+
     fread(all_todos, size, 1, file);
     fclose(file);
 }
@@ -201,11 +258,30 @@ void get_formatted_todo(const char *todo, char *empty_space, int flag){
     empty_space[i] = '\0';
 }
 
+/* Set default TODO file */
+void update_active_todo_file(char *file_name){
+    // open the file just to check if it's exists
+    char _file_path[100];
+    strcpy(_file_path, files_dir_path);
+    strcat(_file_path, file_name);  // concatenate the file name with files_dir_path
+    FILE *file = open_file(_file_path, "r");
+
+    if (file){
+        // update the file name on `active_file.txt`
+        file = open_file(file_path, "w");
+        fputs(file_name, file);
+    } else {
+        printf("File '%s' is not exists\n", file_name);
+    }
+
+}
+
+
 // ----------------------------------------------------------------------------------
 
 
 void add_todo(char todo_priority, int todo_size, char todo[][1000]){
-    FILE *file = open_file("TODO", "a");
+    FILE *file = open_file(active_file_path, "a");
 
     // since max 100 todos are allowed so, the todo id will max go to 3 digit number
     // that's why char_todo_id is created of 4 bytes(1 additional byte for the null character)
@@ -440,6 +516,9 @@ int main(int argc, char const *argv[]){
     char base_command[10], all_todos[100000];
     int start = 0, size = sizeof(all_todos), todo_id;
 
+    // Set the currently active file name
+    set_active_file_name();
+
     if (argc > 1){
         strcpy(base_command, argv[1]);
         get_all_todos(all_todos, size);
@@ -529,6 +608,15 @@ int main(int argc, char const *argv[]){
                 list_completed_todos(all_todos, 1);
             else
                 printf("Invalid flag use\n");
+        }
+    }
+
+    else if (!strcmp(base_command, "use")){
+        if (argc < 3) {
+            printf("File name is missing\n");
+        } else {
+            char *file_name = (char *) argv[2];
+            update_active_todo_file(file_name);
         }
     }
 
