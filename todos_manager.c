@@ -276,6 +276,22 @@ void update_active_todo_file(char *file_name){
 
 }
 
+/* Creates a new todo file */
+void create_todo_file(char *file_name){
+    // open the file just to check if it's exists
+    char _file_path[100];
+    strcpy(_file_path, files_dir_path);
+    strcat(_file_path, file_name);  // concatenate the file name with files_dir_path
+    FILE *file = open_file(_file_path, "r");
+
+    if (file){
+        printf("'%s' is already exists\n", file_name);
+    } else {
+        // just open the file in write mode to create a file
+        open_file(_file_path, "w");
+    }
+
+}
 
 // ----------------------------------------------------------------------------------
 
@@ -620,6 +636,15 @@ int main(int argc, char const *argv[]){
         }
     }
 
+    else if (!strcmp(base_command, "create")){
+        if (argc < 3) {
+            printf("File name is missing\n");
+        } else {
+            char *file_name = (char *) argv[2];
+            create_todo_file(file_name);
+        }
+    }
+
     else if (!strcmp(base_command, "help")){
         char * help = "Usage :-\n \
 $ todo add 2 hello world    # Add a todo with priority 2\n \
@@ -632,6 +657,8 @@ $ todo del --all            # Delete all completed todo\n \
 $ todo done ID              # Mark the incomplete todo with the given ID as complete\n \
 $ todo done ID --undone     # Mark the complete todo with the given ID as incomplete\n \
 $ todo report               # Statistics\n \
+$ todo create FILE_NAME     # Create a new todo file\n \
+$ todo use FILE_NAME        # Set the defualt TODO file\n \
 $ todo help                 # Show usage\n";
 
         printf("%s", help);
