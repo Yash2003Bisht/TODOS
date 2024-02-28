@@ -293,6 +293,18 @@ void create_todo_file(char *file_name){
 
 }
 
+/*
+ * Used to find if a char array is exists in double char array
+*/
+int in(char *value, char char_array[3][7], int size) {
+    for (int i=0; i<size; i++){
+        if (!strcmp(value, char_array[i])){
+            return 1;
+        }
+    }
+    return 0;
+}
+
 // ----------------------------------------------------------------------------------
 
 
@@ -529,15 +541,23 @@ void list_completed_todos(char all_todos[], int formatting_required){
 
 int main(int argc, char const *argv[]){
 
-    char base_command[10], all_todos[100000];
-    int start = 0, size = sizeof(all_todos), todo_id;
-
-    // Set the currently active file name
-    set_active_file_name();
+    char base_command[10], all_todos[100000],
+         // Stores commands that do not require the 'get_all_todos' function to be run
+         preload_not_required_commands[3][7] = {"add", "use", "create"};
+    int start = 0, size = sizeof(all_todos), todo_id, command_match;
 
     if (argc > 1){
         strcpy(base_command, argv[1]);
-        get_all_todos(all_todos, size);
+        command_match = in(base_command, preload_not_required_commands, 3);
+
+        // Set the currently active file name
+        set_active_file_name();
+
+        if (!command_match){
+            // Get all the todos
+            get_all_todos(all_todos, size);
+        }
+
     } else{
         printf("No command passed\n");
         return 0;
