@@ -305,6 +305,24 @@ int in(char *value, char char_array[3][7], int size) {
     return 0;
 }
 
+/*
+ * Displays the currently active todo file
+*/
+void get_active_todo_file_name(char *file_name){
+    int j = 0;
+
+    for (int i=99; active_file_path[i] != '/'; i--){
+        if (active_file_path[i] != '\0'){
+            file_name[j] = active_file_path[i];
+            j++;
+        }
+    }
+
+    // reverse the array
+    reverse(file_name);
+
+}
+
 // ----------------------------------------------------------------------------------
 
 
@@ -662,6 +680,18 @@ int main(int argc, char const *argv[]){
         } else {
             char *file_name = (char *) argv[2];
             create_todo_file(file_name);
+        }
+    }
+
+    else if (!strcmp(base_command, "active")){
+        if (argc < 3) {
+            char file_name[100];
+            get_active_todo_file_name(file_name);
+            printf("%s\n", file_name);
+        } else if (!strcmp(argv[2], "--path")) {
+            printf("%s\n", active_file_path);
+        } else {
+            printf("Invalid flag use\n");
         }
     }
 
