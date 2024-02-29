@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <dirent.h>
 
 // Global variable
 char active_file_path[120],  // stores the currently active file path
@@ -323,6 +324,26 @@ void get_active_todo_file_name(char *file_name){
 
 }
 
+/*
+ * Returns a char array having all the files name in a directory
+*/
+void get_files_in_dir(char files_name[30][50], char *dir_path, int *count){
+    DIR *d;
+    struct dirent *dir;
+
+    d = opendir(dir_path);
+
+    if (d) {
+        while ((dir = readdir(d)) != NULL) {
+            strcpy(files_name[*count], dir->d_name);
+            *count = *count + 1;
+        }
+    } else {
+        printf("Unable to open %s\n", dir_path);
+    }
+
+}
+
 // ----------------------------------------------------------------------------------
 
 
@@ -557,6 +578,20 @@ void list_completed_todos(char all_todos[], int formatting_required){
     }
 }
 
+void list_all_todos_files(){
+    int total_files;
+    char files[30][50];
+    get_files_in_dir(files, files_dir_path, &total_files);
+
+    for (int i=0; i<total_files; i++){
+        // skip files starts with '.'
+        if (files[i][0] == '.')
+            continue;
+        printf("%s\n", files[i]);
+    }
+
+}
+
 int main(int argc, char const *argv[]){
 
     char base_command[10], all_todos[100000],
@@ -653,13 +688,24 @@ int main(int argc, char const *argv[]){
         if (argc <= 2){
             list_pending_todos(all_todos, 0);
         } else {
-            if (!strcmp(argv[2], "--format") && argc <= 3)
-                list_pending_todos(all_todos, 1);
-            else if (!strcmp(argv[2], "--done") && argc <= 3)
-                list_completed_todos(all_todos, 0);
-            else if ((!strcmp(argv[2], "--done") && !strcmp(argv[3], "--format")) ||
-                      !strcmp(argv[2], "--format") && !strcmp(argv[3], "--done"))
-                list_completed_todos(all_todos, 1);
+            // Get all flags used
+            int done = 0, format = 0, todos = 0;
+
+            for (int i=2; i<argc; i++){
+                if (!strcmp(argv[i], "--todos"))
+                    todos = 1;
+                else if (!strcmp(argv[i], "--format"))
+                    format = 1;
+                else if (!strcmp(argv[i], "--done"))
+                    done = 1;
+            }
+
+            if (todos)
+                list_all_todos_files();
+            else if (done)
+                list_completed_todos(all_todos, format);
+            else if (format)
+                list_pending_todos(all_todos, format);
             else
                 printf("Invalid flag use\n");
         }
