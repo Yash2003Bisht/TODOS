@@ -278,6 +278,7 @@ void update_active_todo_file(char *file_name){
         // update the file name on `active_file.txt`
         file = open_file(file_path, "w");
         fputs(file_name, file);
+        printf("Now using %s as default TODO file\n", file_name);
     } else {
         printf("File '%s' is not exists\n", file_name);
     }
