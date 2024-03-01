@@ -10,7 +10,8 @@
 // Global variable
 char active_file_path[120],  // stores the currently active file path
      file_path[120],         // stores 'active_file.txt' path
-     *files_dir_path;        // stores todos files directory path
+     *files_dir_path,        // stores todos files directory path
+     *use_file = NULL;       // stores the file name to use instead of currently active file
 
 // ----------------------------------------------------------------------------------
 
@@ -27,6 +28,12 @@ FILE * open_file(char file_name[], const char *mode){
 */
 void set_active_file_name(){
     files_dir_path = getenv("TODOS_TEXT_DIR");
+
+    if (use_file) {
+        strcpy(active_file_path, files_dir_path);
+        strcat(active_file_path, use_file);
+        goto active_file_exists;
+    }
 
     // Make "active_file.txt" path
     strcpy(file_path, files_dir_path);
@@ -603,6 +610,17 @@ int main(int argc, char const *argv[]){
         strcpy(base_command, argv[1]);
         command_match = in(base_command, preload_not_required_commands, 3);
 
+        for (int i=2; i < argc; i++){
+            if (!strcmp("-use", argv[i])){
+                if (i+1 == argc){
+                    printf("Please pass a todo file name\n");
+                    exit(0);
+                }
+                use_file = (char *) argv[i+1];
+                break;
+            }
+        }
+
         // Set the currently active file name
         set_active_file_name();
 
@@ -706,6 +724,10 @@ int main(int argc, char const *argv[]){
                 list_completed_todos(all_todos, format);
             else if (format)
                 list_pending_todos(all_todos, format);
+            // special case for '-use' parameter
+            // check if the '-use' parameter is used than it's not an invalid flag, just list out all the pending todos.
+            else if (use_file)
+                list_pending_todos(all_todos, 0);
             else
                 printf("Invalid flag use\n");
         }
