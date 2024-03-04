@@ -10,7 +10,7 @@ struct ls {
 };
 
 struct done {
-    int done_flag;
+    int done__undone;
     int _use;
 };
 
@@ -107,14 +107,14 @@ int main(int argc, char const *argv[]){
             struct done _done;
 
             // assign default value
-            _done.done_flag = 1;
+            _done.done__undone = 1;
             _done._use = 0;
 
             for (int i=3; i<argc; i++){
                 if (!strcmp(argv[i], "--done")){
-                    _done.done_flag = 1;
+                    _done.done__undone = 1;
                 } else if (!strcmp(argv[i], "--undone")){
-                    _done.done_flag = 0;
+                    _done.done__undone = 0;
                 } else if (!strcmp(argv[i], "-use")){
                     _done._use = 1;
                     i++;
@@ -124,7 +124,7 @@ int main(int argc, char const *argv[]){
                 }
             }
 
-            mark_todo(todo_id, all_todos, _done.done_flag);
+            mark_todo(todo_id, all_todos, _done.done__undone);
 
         }
     }
