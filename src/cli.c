@@ -1,5 +1,25 @@
 #include "todos.c"
 
+// Define structure for commands that require parameters or flags
+// Name starts with underscore '_' means it is a parameter otherwise flag
+struct ls {
+    int format;
+    int done;
+    int todos;
+    int _use;
+};
+
+struct done {
+    int done_flag;
+    int _use;
+};
+
+struct del {
+    int all;
+    int force;
+    int _use;
+};
+
 int main(int argc, char const *argv[]){
 
     char base_command[10], all_todos[100000],
@@ -43,12 +63,27 @@ int main(int argc, char const *argv[]){
         if (argc <= 3){
             printf("Priority & todo message is required\n");
         } else{
+            // Check requried positional argument Todo priority
+            if (argv[2][0] == '-'){
+                printf("Missing required positional argument Todo priority\n");
+                exit(0);
+            }
+
+            // Check requried positional argument Todo message
+            if (argv[3][0] == '-'){
+                printf("Missing required positional argument Todo message\n");
+                exit(0);
+            }
+
             size = argc-3;
             char todo[size][1000], priority = argv[2][0];
 
             // copy the todo to a new char array
-            for (int i=0; i < size; i++)
+            for (int i=0; i < size; i++) {
+                if (argv[i+3][0] == '-')
+                    break;
                 strcpy(todo[i], argv[i+3]);        
+            }
 
             add_todo(priority, size, todo);
             printf("Todo added\n");
@@ -59,43 +94,88 @@ int main(int argc, char const *argv[]){
         if (argc <= 2){
             printf("Todo id is required\n");
         } else{
+
+            // Check if 2nd argument is starts with '-', meaning it's an flag or parameter
+            if (argv[2][0] == '-'){
+                printf("Missing required positional argument Todo id\n");
+                exit(0);
+            }
+
             todo_id = atoi(argv[2]);
-            if (argc == 4)
-                mark_todo(todo_id, all_todos, argv[3]);
-            else
-                mark_todo(todo_id, all_todos, "--done");
+            struct done _done;
+
+            // assign default value
+            _done.done_flag = 1;
+            _done._use = 0;
+
+            for (int i=3; i<argc; i++){
+                if (!strcmp(argv[i], "--done")){
+                    _done.done_flag = 1;
+                } else if (!strcmp(argv[i], "--undone")){
+                    _done.done_flag = 0;
+                } else if (!strcmp(argv[i], "-use")){
+                    _done._use = 1;
+                    i++;
+                } else {
+                    printf("%s is not a valid flag/parameter\n", argv[i]);
+                    exit(0);
+                }
+            }
+
+            mark_todo(todo_id, all_todos, _done.done_flag);
+
         }
     }
 
     else if (!strcmp(base_command, "del")){
         if (argc <= 2){
             printf("Todo id is required\n");
-        } else if (!strcmp(argv[2], "--all")){
-            char confirmation[2];
+        } else {
+            struct del _del;
 
-            // take a second confirmation from the user
-            printf("Please confirm(y/n) ");
-            scanf("%s", confirmation);
+            // assign default value
+            _del.all = 0;
+            _del.force = 0;
+            _del._use = 0; 
 
-            if (!strcmp(confirmation, "y")){
-                del_all_todos(all_todos);
-                printf("All completed todos deleted\n");
+            for (int i=2; i<argc; i++){
+                if (argv[i][0] != '-'){
+                    continue;
+                }else if (!strcmp(argv[i], "--all")){
+                    _del.all = 1;
+                } else if (!strcmp(argv[i], "--force")){
+                    _del.force = 1;
+                } else if (!strcmp(argv[i], "-use")){
+                    _del._use = 1;
+                    i++;
+                } else {
+                    printf("%s is not a valid flag/parameter\n", argv[i]);
+                    exit(0);
+                }
             }
 
-
-        } else{
-            todo_id = atoi(argv[2]);
-            int force_del;
-
-            // check if "--force" delete flag is used
-            if (argc >= 4){
-                if (!strcmp(argv[3], "--force"))
-                    force_del = 1;
-                else
-                    force_del = 0;
+            // Check if 2nd argument is starts with '-', meaning it's an flag or parameter
+            if (argv[2][0] == '-' && !_del.all){
+                printf("Missing required positional argument Todo id\n");
+                exit(0);
             }
 
-            del_todo(todo_id, force_del, all_todos);
+            if (_del.all){
+                char confirmation[2];
+
+                // take a second confirmation from the user
+                printf("Please confirm(y/n) ");
+                scanf("%s", confirmation);
+
+                if (!strcmp(confirmation, "y")){
+                    del_all_todos(all_todos);
+                    printf("All completed todos deleted\n");
+                }
+
+            } else{
+                todo_id = atoi(argv[2]);
+                del_todo(todo_id, _del.force, all_todos);
+            }
         }
     }
 
@@ -104,34 +184,37 @@ int main(int argc, char const *argv[]){
     }
 
     else if (!strcmp(base_command, "ls")){
-        if (argc <= 2){
-            list_pending_todos(all_todos, 0);
-        } else {
-            // Get all flags used
-            int done = 0, format = 0, todos = 0;
+        struct ls _ls;
 
-            for (int i=2; i<argc; i++){
-                if (!strcmp(argv[i], "--todos"))
-                    todos = 1;
-                else if (!strcmp(argv[i], "--format"))
-                    format = 1;
-                else if (!strcmp(argv[i], "--done"))
-                    done = 1;
+        // assign default value
+        _ls.todos = 0;
+        _ls.format = 0;
+        _ls.done = 0;
+        _ls._use = 0;
+
+        for (int i=2; i<argc; i++){
+            if (!strcmp(argv[i], "--todos")){
+                _ls.todos = 1;
+            } else if (!strcmp(argv[i], "--format")){
+                _ls.format = 1; 
+            } else if (!strcmp(argv[i], "--done")){
+                _ls.done = 1; 
+            } else if (!strcmp(argv[i], "-use")){
+                _ls._use = 1;
+                i++;
+            } else {
+                printf("%s is not a valid flag/parameter\n", argv[i]);
+                exit(0);
             }
-
-            if (todos)
-                list_all_todos_files();
-            else if (done)
-                list_completed_todos(all_todos, format);
-            else if (format)
-                list_pending_todos(all_todos, format);
-            // special case for '-use' parameter
-            // check if the '-use' parameter is used than it's not an invalid flag, just list out all the pending todos.
-            else if (use_file)
-                list_pending_todos(all_todos, 0);
-            else
-                printf("Invalid flag use\n");
         }
+
+        if (_ls.todos)
+            list_all_todos_files();
+        else if (_ls.done)
+            list_completed_todos(all_todos, _ls.format);
+        else
+            list_pending_todos(all_todos, _ls.format);
+
     }
 
     else if (!strcmp(base_command, "use")){
