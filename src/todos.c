@@ -11,8 +11,8 @@ void add_todo(char todo_priority, int todo_size, char todo[][1000]){
     for (int i=0; i<todo_size; i++){
         fputs(todo[i], file);
 
-        // add a space (only if '-use' parameter is not used)
-        if (i < todo_size-1 && !use_file)
+        // add a space
+        if (i < todo_size-1)
             fputc(' ', file);
 
     }

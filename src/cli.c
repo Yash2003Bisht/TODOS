@@ -80,8 +80,10 @@ int main(int argc, char const *argv[]){
 
             // copy the todo to a new char array
             for (int i=0; i < size; i++) {
-                if (argv[i+3][0] == '-')
+                if (argv[i+3][0] == '-'){
+                    size = i;
                     break;
+                }
                 strcpy(todo[i], argv[i+3]);        
             }
 
