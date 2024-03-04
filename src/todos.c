@@ -11,8 +11,8 @@ void add_todo(char todo_priority, int todo_size, char todo[][1000]){
     for (int i=0; i<todo_size; i++){
         fputs(todo[i], file);
 
-        // add a space
-        if (i < todo_size-1)
+        // add a space (only if '-use' parameter is not used)
+        if (i < todo_size-1 && !use_file)
             fputc(' ', file);
 
     }
@@ -94,7 +94,7 @@ void del_all_todos(char all_todos[]){
     write_all_todos(pending_todos, pending_todos_count);
 }
 
-void mark_todo(int todo_id, char all_todos[], const char operation[]){
+void mark_todo(int todo_id, char all_todos[], int operation){
     int todos_count = num_of_todos(all_todos), match_todo_id, todo_len, flag = 0, count;
     char todos[todos_count][1000], char_todo_id[4], todo[1000];
     seprate_all_todos(all_todos, todos);
@@ -113,7 +113,7 @@ void mark_todo(int todo_id, char all_todos[], const char operation[]){
         match_todo_id = atoi(char_todo_id);
 
         if (todo_id == match_todo_id){
-            if (!strcmp(operation, "--undone")){
+            if (!operation){
                 if (todos[i][0] != '*'){
                     printf("Todo is not marked as done\n");
                     flag = -1;
