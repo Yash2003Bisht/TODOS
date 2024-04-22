@@ -253,8 +253,10 @@ int main(int argc, char const *argv[]){
         char * help = "Usage :-\n \
 $ todo add 2 hello world    # Add a todo with priority 2\n \
 $ todo ls                   # Show all incompleted todos sorted by priority in ascending order\n \
+$ todo ls -use <file-name>  # use -use argument to use a specific todo file\n \
 $ todo ls --format          # --format for formatting\n \
 $ todo ls --done            # Show all completed todos sorted by priority in ascending order\n \
+$ todo ls --todos           # Show all todos files\n \
 $ todo del ID               # Delete a completed todo with the given ID\n \
 $ todo del ID --force       # Use --force flag to delete a uncompleted todo\n \
 $ todo del --all            # Delete all completed todo\n \
