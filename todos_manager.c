@@ -117,7 +117,7 @@ void get_all_todos(char all_todos[], int size){
  * char all_todos[] = {"write an essay on cow\nplay with pet"};
  * char todos[][1000] = {{"write an essay on cow"}, {"play with pet"}};
  */
-void seprate_all_todos(char all_todos[], char todos[][1000]){
+void separate_all_todos(char all_todos[], char todos[][1000]){
     char temp[1000];
     int j, k = 0;
 
@@ -173,7 +173,7 @@ void reverse(char* str) {
 int generate_todo_id(char all_todos[]){
     int todos_count = num_of_todos(all_todos), todo_len, count;
     char todos[todos_count][1000], char_todo_id[4] = {'\0'};
-    seprate_all_todos(all_todos, todos);
+    separate_all_todos(all_todos, todos);
 
     int todo_id_count[todos_count];
 
@@ -252,7 +252,7 @@ void sort_by_priority(char todos[][1000], int priority[], int size){
 void priority_sorting(char all_todos[], char todos[][1000], int todos_count){
     int priority[todos_count];
     get_todos_priority(all_todos, priority);  // extract all priority from todos and save them to an array
-    seprate_all_todos(all_todos, todos);  // store todos into 2d array
+    separate_all_todos(all_todos, todos);  // store todos into 2d array
     sort_by_priority(todos, priority, todos_count);  // sort todos by priority
 }
 
@@ -396,7 +396,7 @@ void add_todo(char todo_priority, int todo_size, char todo[][1000]){
 void del_todo(int todo_id, int force_del, char all_todos[]){
     int todos_count = num_of_todos(all_todos), match_todo_id, todo_len, flag = 0, count;
     char todos[todos_count][1000], char_todo_id[4], todo[1000];
-    seprate_all_todos(all_todos, todos);
+    separate_all_todos(all_todos, todos);
 
     for (int i=0; i<todos_count; i++){
         todo_len = strlen(todos[i]) - 1, count = 0;
@@ -441,7 +441,7 @@ void del_todo(int todo_id, int force_del, char all_todos[]){
 void del_all_todos(char all_todos[]){
     int todos_count = num_of_todos(all_todos), length, pending_todos_count = 0;
     char todos[todos_count][1000], pending_todos[todos_count][1000];
-    seprate_all_todos(all_todos, todos);
+    separate_all_todos(all_todos, todos);
 
     for (int i=0; i<todos_count; i++){
         if (todos[i][0] != '*'){
@@ -456,7 +456,7 @@ void del_all_todos(char all_todos[]){
 void mark_todo(int todo_id, char all_todos[], const char operation[]){
     int todos_count = num_of_todos(all_todos), match_todo_id, todo_len, flag = 0, count;
     char todos[todos_count][1000], char_todo_id[4], todo[1000];
-    seprate_all_todos(all_todos, todos);
+    separate_all_todos(all_todos, todos);
 
     for (int i=0; i<todos_count; i++){
         todo_len = strlen(todos[i]) - 1, count = 0;
