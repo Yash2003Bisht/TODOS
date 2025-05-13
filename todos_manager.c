@@ -1,3 +1,7 @@
+/*
+DEPRICATED:- The code in this file is no longer used in the project (it has been separated into other files for better management)
+*/
+
 #define _GNU_SOURCE  // asprintf is part of stdio.h, but need to add
                      // #define _GNU_SOURCE at the top of the file otherwise it gives an error
 
