@@ -84,7 +84,7 @@ void slice(const char *todo, char *result, int start, int end){
 /* Open the file on write mode and delete all existing content
  * then rewrite the remaining todos
  */
-void write_all_todos(char todo[][1000], int size){
+void write_all_todos(char todo[][2000], int size){
     FILE *write_file = open_file(active_file_path, "w");
 
     for (int i=0; i<size; i++)
@@ -103,7 +103,17 @@ void get_all_todos(char all_todos[], int size){
         exit(0);
     }
 
-    fread(all_todos, size, 1, file);
+    // Initialize the buffer to ensure it's clean
+    memset(all_todos, 0, size);
+
+    // Read the file content
+    size_t bytes_read = fread(all_todos, 1, size - 1, file);
+
+    // Ensure null termination
+    all_todos[bytes_read] = '\0';
+
+
+
     fclose(file);
 }
 
@@ -112,26 +122,34 @@ void get_all_todos(char all_todos[], int size){
  * char all_todos[] = {"write an essay on cow\nplay with pet"};
  * char todos[][1000] = {{"write an essay on cow"}, {"play with pet"}};
  */
-void separate_all_todos(char all_todos[], char todos[][1000]){
-    char temp[1000];
+void separate_all_todos(char all_todos[], char todos[][2000]){
+    char temp[2000];
     int j, k = 0;
 
     for (int i=0; all_todos[i] != '\0'; i++){
         j = 0;
-        while(all_todos[i] != '\n'){
+        // Add bounds checking to prevent buffer overflow
+        while(all_todos[i] != '\n' && all_todos[i] != '\0' && j < 1999){
             temp[j] = all_todos[i];
             j++;
             i++;
         }
 
-        // add a new line and null character 
-        temp[j] = '\n';
-        temp[++j] = '\0';
+        // Only process if we found content (skip empty lines)
+        if (j > 0) {
+            // add a new line and null character
+            temp[j] = '\n';
+            temp[++j] = '\0';
 
-        // copy temp array into todos 2d array
-        strcpy(todos[k], temp);
-        k++;
+            // copy temp array into todos 2d array
+            strcpy(todos[k], temp);
+            k++;
+        }
 
+        // If we hit end of string without newline, break
+        if (all_todos[i] == '\0') {
+            break;
+        }
     }
 
 }
@@ -144,6 +162,7 @@ int num_of_todos(char all_todos[]){
     for (int i=0; all_todos[i] != '\0'; i++){
         if (all_todos[i] == '\n') total_todos++;
     }
+
     return total_todos;
 }
 
@@ -167,7 +186,7 @@ void reverse(char* str) {
  */
 int generate_todo_id(char all_todos[]){
     int todos_count = num_of_todos(all_todos), todo_len, count;
-    char todos[todos_count][1000], char_todo_id[4] = {'\0'};
+    char todos[todos_count][2000], char_todo_id[4] = {'\0'};
     separate_all_todos(all_todos, todos);
 
     int todo_id_count[todos_count];
@@ -222,9 +241,9 @@ void get_todos_priority(char all_todos[], int priority[]){
 /* Sort todo by priority
  * using selection sort algorithm to sort todo by priority (will update it with merge sort in future)
  */ 
-void sort_by_priority(char todos[][1000], int priority[], int size){
+void sort_by_priority(char todos[][2000], int priority[], int size){
 
-    char temp[1000];
+    char temp[2000];
 
     for (int i = 0; i < size; i++) {
         for (int j = i + 1; j < size; j++) {
@@ -244,7 +263,7 @@ void sort_by_priority(char todos[][1000], int priority[], int size){
  * 1) extracting all priorities from todos
  * 2) converting todos from 1D array to 2D array
  */ 
-void priority_sorting(char all_todos[], char todos[][1000], int todos_count){
+void priority_sorting(char all_todos[], char todos[][2000], int todos_count){
     int priority[todos_count];
     get_todos_priority(all_todos, priority);  // extract all priority from todos and save them to an array
     separate_all_todos(all_todos, todos);  // store todos into 2d array

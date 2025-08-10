@@ -76,7 +76,7 @@ int main(int argc, char const *argv[]){
             }
 
             size = argc-3;
-            char todo[size][1000], priority = argv[2][0];
+            char todo[size][2000], priority = argv[2][0];
 
             // copy the todo to a new char array
             for (int i=0; i < size; i++) {

@@ -1,6 +1,6 @@
 #include "utils.c"
 
-void add_todo(char todo_priority, int todo_size, char todo[][1000]){
+void add_todo(char todo_priority, int todo_size, char todo[][2000]){
     FILE *file = open_file(active_file_path, "a");
 
     // since max 100 todos are allowed so, the todo id will max go to 3 digit number
@@ -36,7 +36,7 @@ void add_todo(char todo_priority, int todo_size, char todo[][1000]){
 
 void del_todo(int todo_id, int force_del, char all_todos[]){
     int todos_count = num_of_todos(all_todos), match_todo_id, todo_len, flag = 0, count;
-    char todos[todos_count][1000], char_todo_id[4], todo[1000];
+    char todos[todos_count][2000], char_todo_id[4], todo[2000];
     separate_all_todos(all_todos, todos);
 
     for (int i=0; i<todos_count; i++){
@@ -81,7 +81,7 @@ void del_todo(int todo_id, int force_del, char all_todos[]){
 
 void del_all_todos(char all_todos[]){
     int todos_count = num_of_todos(all_todos), length, pending_todos_count = 0;
-    char todos[todos_count][1000], pending_todos[todos_count][1000];
+    char todos[todos_count][2000], pending_todos[todos_count][2000];
     separate_all_todos(all_todos, todos);
 
     for (int i=0; i<todos_count; i++){
@@ -96,7 +96,7 @@ void del_all_todos(char all_todos[]){
 
 void mark_todo(int todo_id, char all_todos[], int operation){
     int todos_count = num_of_todos(all_todos), match_todo_id, todo_len, flag = 0, count;
-    char todos[todos_count][1000], char_todo_id[4], todo[1000];
+    char todos[todos_count][2000], char_todo_id[4], todo[2000];
     separate_all_todos(all_todos, todos);
 
     for (int i=0; i<todos_count; i++){
@@ -148,7 +148,7 @@ void mark_todo(int todo_id, char all_todos[], int operation){
 }
 
 void generate_report(char all_todos[]){
-    char todos[100][1000], todo[1000];
+    char todos[100][2000], todo[2000];
     int count = 1, todos_count = num_of_todos(all_todos);
 
     // sort todos by priority
@@ -180,9 +180,11 @@ void generate_report(char all_todos[]){
 }
 
 void list_pending_todos(char all_todos[], int formatting_required){
-    char todos[100][1000], todo[1000];
+    char todos[100][2000], todo[2000];
     int count = 1, flag = 1, todos_count = num_of_todos(all_todos);
-    
+
+
+
     // sort todos by priority
     priority_sorting(all_todos, todos, todos_count);
 
@@ -207,7 +209,7 @@ void list_pending_todos(char all_todos[], int formatting_required){
 }
 
 void list_completed_todos(char all_todos[], int formatting_required){
-    char todos[100][1000], todo[1000];
+    char todos[100][2000], todo[2000];
     int count = 1, flag = 1, todos_count = num_of_todos(all_todos);
     
     // sort todos by priority
