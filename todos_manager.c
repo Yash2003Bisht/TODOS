@@ -108,7 +108,15 @@ void get_all_todos(char all_todos[], int size){
         exit(0);
     }
 
-    fread(all_todos, size, 1, file);
+    // Initialize the buffer to ensure it's clean
+    memset(all_todos, 0, size);
+
+    // Read the file content
+    size_t bytes_read = fread(all_todos, 1, size - 1, file);
+
+    // Ensure null termination
+    all_todos[bytes_read] = '\0';
+
     fclose(file);
 }
 
